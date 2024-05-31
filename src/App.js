@@ -39,7 +39,7 @@ const PopulationData = ({ Year, Population, Nation }) => {
   return (
       <div>
           <h2>Year: {Year}</h2>
-          <p>Population: {Population.toLocaleString()}</p>
+          <p>Population: {Population}</p>
           <p>Nation: {Nation}</p>
       </div>
   );
