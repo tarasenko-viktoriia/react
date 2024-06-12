@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 
 const Spoiler = ({ header="+", open, children }) => {
     const [isOpen, setIsOpen] = useState(open);
@@ -6,22 +6,22 @@ const Spoiler = ({ header="+", open, children }) => {
     const toggleOpen = () => {
         setIsOpen(!isOpen);
     };
-
-    return (
-        <div>
-            <div onClick={toggleOpen} style={{ cursor: 'pointer' }}>
-                {header}
-            </div>
-            {isOpen && (
-                <div>
-                    {children}
-                </div>
-            )}
-        </div>
-    );
+return (
+  <div>
+      <div onClick={toggleOpen} style={{ cursor: 'pointer' }}>
+          {header}
+      </div>
+      {isOpen && (
+          <div>
+              {children}
+          </div>
+      )}
+  </div>
+);
 };
 
-const RangeInput = ({min, max}) => { // Проблема із бордером
+
+const RangeInput = ({min, max}) => {
   const [text, setText] = useState("");
 
   const inputStyle = {
@@ -34,7 +34,7 @@ const RangeInput = ({min, max}) => { // Проблема із бордером
   )
 }
 
-const LoginForm = ({onLogin = () => {throw new ReferenceError ("You shoud set onLogin prop to function, receives object with name, surname and fatherName")}}) => {
+const LoginForm = ({onLogin}) => {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
 
@@ -64,53 +64,34 @@ const PasswordConfirm = ({min}) => {
   )
 }
 
-const Thumbnails = ({ images, current, onChange }) => {
-  return (
-    <div className="thumbnails">
-      {images.map((image, index) => (
-        <img
-          key={index}
-          src={image}
-          alt={`thumbnail-${index}`}
-          className={`thumbnail ${current === index ? 'active' : ''}`}
-          onClick={() => onChange(index)}
-        />
-      ))}
-    </div>
-  );
-};
+
+const Thumbnails = ({ images, current, onChange }) => (
+  <div className="thumbnails">
+    {images.map((image, index) => (
+      <img
+        key={index}
+        src={image}
+        alt={`thumbnail-${index}`}
+        className={`thumbnail ${current === index ? 'active' : ''}`}
+        onClick={() => onChange(index)}
+      />
+    ))}
+  </div>
+);
 
 const Carousel = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const nextImage = () => {
-    setCurrentIndex((currentIndex + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentIndex((currentIndex - 1 + images.length) % images.length);
-  };
-
-  const thumbnailClick = (index) => {
-    setCurrentIndex(index);
-  };
-
-  const mainImageClick = (event) => {
-    const clickPosition = event.clientX - event.target.getBoundingClientRect().left;//шо це таке
-    const imageWidth = event.target.clientWidth;
-    if (clickPosition < imageWidth / 3) {
-      prevImage();
-    } else {
-      nextImage();
-    }
+  const changeImage = (direction) => {
+    setCurrentIndex((currentIndex + direction + images.length) % images.length);
   };
 
   return (
     <div className="carousel">
-      <div className="main-image" onClick={mainImageClick}>
+      <div className="main-image" onClick={() => changeImage(1)}>
         <img src={images[currentIndex]} alt="carousel" />
       </div>
-      <Thumbnails images={images} current={currentIndex} onChange={thumbnailClick} />
+      <Thumbnails images={images} current={currentIndex} onChange={setCurrentIndex} />
     </div>
   );
 };
@@ -125,15 +106,43 @@ const Color = ({page}) =>
       {page}
   </div>
 
-const Pagination = ({render, max}) => {
-    const Render = render
-    
-    return (
-        <div>
-            <Render page={page} />
-        </div>
-    )
-}
+const Pagination = ({ render, max }) => {
+  const Render = render;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const goToPage = (page) => {
+      if (page >= 1 && page <= max) {
+          setCurrentPage(page);
+      }
+  };
+
+  const goToPrevPage = () => {
+      if (currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+      }
+  };
+
+  const goToNextPage = () => {
+      if (currentPage < max) {
+          setCurrentPage(currentPage + 1);
+      }
+  };
+
+  return (
+    <div>
+        <button onClick={goToPrevPage}>{'<<'}</button>
+        <button onClick={goToPrevPage}>{'<'}</button>
+        {[...Array(max).keys()].map((page) => (
+            <button key={page} onClick={() => goToPage(page + 1)}>
+                {page + 1}
+            </button>
+        ))}
+        <button onClick={goToNextPage}>{'>'}</button>
+        <button onClick={goToNextPage}>{'>>'}</button>
+        <Render page={currentPage} />
+    </div>
+  );
+};
 
 const App = () => (
     <div>
