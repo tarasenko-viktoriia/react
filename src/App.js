@@ -171,9 +171,9 @@ const ClockTimer = ({ seconds }) => {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
 
-  const hourAngle = -(hours % 12) * 30 + minutes * 0.5; // 360 / 12 = 30 degrees per hour
-  const minuteAngle = -minutes * 6 + secs * 0.1; // 360 / 60 = 6 degrees per minute
-  const secondAngle = -secs * 6; // 360 / 60 = 6 degrees per second
+  const hourAngle = -(hours % 12) * 30 + minutes * 0.5; 
+  const minuteAngle = -minutes * 6 + secs * 0.1; 
+  const secondAngle = -secs * 6; 
 
   return (
     <div className="clock">
@@ -189,7 +189,7 @@ const TimerContainer3 = ({ seconds, refresh, render }) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
   const [paused, setPaused] = useState(false);
   const intervalRef = useRef(null);
-  const RenderComponent = render; // Призначаємо render змінній з великої літери
+  const RenderComponent = render; 
 
   useEffect(() => {
     const startTime = Date.now();
@@ -201,7 +201,7 @@ const TimerContainer3 = ({ seconds, refresh, render }) => {
       }, refresh);
     }
 
-    return () => clearInterval(intervalRef.current); // Очистка інтервалу при розмонтуванні
+    return () => clearInterval(intervalRef.current); 
   }, [seconds, refresh, paused]);
 
   const togglePause = () => {
