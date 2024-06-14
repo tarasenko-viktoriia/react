@@ -1,8 +1,7 @@
-// import { clear } from '@testing-library/user-event/dist/clear';
 import React from 'react';
 import {useState, useEffect, useRef} from 'react';
 
-
+//1
 const Timer = ({ initialSeconds = 1000, ms = 1000 }) => {
   const [count, setCount] = useState(initialSeconds);
   const [paused, setPaused] = useState(false);
@@ -34,6 +33,8 @@ const Timer = ({ initialSeconds = 1000, ms = 1000 }) => {
     </div>
   );
 };
+
+//2
 
 const TimerControl = () => {
   const [hours, setHours] = useState();
@@ -84,109 +85,228 @@ const TimerControl = () => {
   );
 };
 
-const TimerContainer = ({ seconds, refresh, render: RenderComponent }) => {
+
+//3
+const TimerContainer = ({ seconds, refresh, render }) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
-  const startTimeRef = useRef(Date.now());
+  const RenderComponent = render;
 
   useEffect(() => {
+    const startTime = Date.now();
     const intervalId = setInterval(() => {
-      const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      const newTimeLeft = Math.max(seconds - elapsedTime, 0);
-      setTimeLeft(newTimeLeft);
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      const newTimeLeft = seconds - elapsedTime;
+      setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
     }, refresh);
 
-    return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId); 
   }, [seconds, refresh]);
 
   return <RenderComponent seconds={timeLeft} />;
 };
 
-const SecondsTimer = ({ seconds }) => <h3>{seconds}</h3>;
-
-
-// const Timer2 = ({ hours, minutes, seconds }) => (
-//   <div>
-//     {String(hours).padStart(2, '0')}:
-//     {String(minutes).padStart(2, '0')}:
-//     {String(seconds).padStart(2, '0')}
-//   </div>
-// );
-
-// const TimerContainer2 = ({ seconds, refresh, render: RenderComponent }) => {
-//   const [timeLeft, setTimeLeft] = useState(seconds);
-//   const startTimeRef = useRef(Date.now());
-
-//   useEffect(() => {
-//     const intervalId = setInterval(() => {
-//       const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-//       const newTimeLeft = Math.max(seconds - elapsedTime, 0);
-//       setTimeLeft(newTimeLeft);
-//     }, refresh);
-
-//     return () => clearInterval(intervalId);
-//   }, [seconds, refresh]);
-
-//   const hours = Math.floor(timeLeft / 3600);
-//   const minutes = Math.floor((timeLeft % 3600) / 60);
-//   const secs = timeLeft % 60;
-
-//   return <RenderComponent hours={hours} minutes={minutes} seconds={secs} />;
-// };
-
-const ClockTimer = ({ hours, minutes, seconds }) => {
-  const hourAngle = (hours % 12) * 30 + minutes * 0.5; 
-  const minuteAngle = minutes * 6; 
-  const secondAngle = seconds * 6; 
+//4
+const Timer2 = ({ seconds, paused, onTogglePause }) => {
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="clock">
-      <img src="./images/ClockFace.png" alt="Clock Face" className="clock-face" />
-      <img
-        src='./images/ClockFace_H.png'
-        alt="Hour Hand"
-        className="hand hour-hand"
-        style={{ transform: `rotate(${hourAngle}deg)` }}
-      />
-      <img
-        src='./images/ClockFace_M.png'
-        alt="Minute Hand"
-        className="hand minute-hand"
-        style={{ transform: `rotate(${minuteAngle}deg)` }}
-      />
-      <img
-       src='./images/ClockFace_S.png'
-        alt="Second Hand"
-        className="hand second-hand"
-        style={{ transform: `rotate(${secondAngle}deg)` }}
-      />
+    <div>
+      <div>{formatTime(seconds)}</div>
+      <button onClick={onTogglePause}>{paused ? 'Продовжити' : 'Пауза'}</button>
     </div>
   );
 };
 
-const TimerContainer2 = ({ seconds, refresh, render: RenderComponent }) => {
+
+const TimerContainer2 = ({ seconds, refresh, render }) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
-  const startTimeRef = useRef(Date.now());
+  const [paused, setPaused] = useState(false);
+  const intervalRef = useRef(null);
+  const RenderComponent = render; 
 
   useEffect(() => {
+    const startTime = Date.now();
+    if (!paused) {
+      intervalRef.current = setInterval(() => {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const newTimeLeft = seconds - elapsedTime;
+        setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
+      }, refresh);
+    }
+
+    return () => clearInterval(intervalRef.current); 
+  }, [seconds, refresh, paused]);
+
+  const togglePause = () => {
+    setPaused(!paused);
+    if (!paused) {
+      clearInterval(intervalRef.current);
+    } else {
+      const startTime = Date.now() - (seconds - timeLeft) * 1000;
+      intervalRef.current = setInterval(() => {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const newTimeLeft = seconds - elapsedTime;
+        setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
+      }, refresh);
+    }
+  };
+
+  return (
+    <RenderComponent
+      seconds={timeLeft}
+      paused={paused}
+      onTogglePause={togglePause}
+    />
+  );
+};
+
+//5
+const ClockTimer = ({ seconds }) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  const hourAngle = -(hours % 12) * 30 + minutes * 0.5; // 360 / 12 = 30 degrees per hour
+  const minuteAngle = -minutes * 6 + secs * 0.1; // 360 / 60 = 6 degrees per minute
+  const secondAngle = -secs * 6; // 360 / 60 = 6 degrees per second
+
+  return (
+    <div className="clock">
+      <img src="./images/ClockFace.png" className="clock-face" alt="Clock Face" />
+      <img src='./images/ClockFace_H.png' className="hand hour" style={{ transform: `rotate(${hourAngle}deg)` }} alt="Hour Hand" />
+      <img src='./images/ClockFace_M.png' className="hand minute" style={{ transform: `rotate(${minuteAngle}deg)` }} alt="Minute Hand" />
+      <img src='./images/ClockFace_S.png' className="hand second" style={{ transform: `rotate(${secondAngle}deg)` }} alt="Second Hand" />
+    </div>
+  );
+};
+
+const TimerContainer3 = ({ seconds, refresh, render }) => {
+  const [timeLeft, setTimeLeft] = useState(seconds);
+  const [paused, setPaused] = useState(false);
+  const intervalRef = useRef(null);
+  const RenderComponent = render; // Призначаємо render змінній з великої літери
+
+  useEffect(() => {
+    const startTime = Date.now();
+    if (!paused) {
+      intervalRef.current = setInterval(() => {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const newTimeLeft = seconds - elapsedTime;
+        setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
+      }, refresh);
+    }
+
+    return () => clearInterval(intervalRef.current); // Очистка інтервалу при розмонтуванні
+  }, [seconds, refresh, paused]);
+
+  const togglePause = () => {
+    setPaused(!paused);
+    if (!paused) {
+      clearInterval(intervalRef.current);
+    } else {
+      const startTime = Date.now() - (seconds - timeLeft) * 1000;
+      intervalRef.current = setInterval(() => {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const newTimeLeft = seconds - elapsedTime;
+        setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
+      }, refresh);
+    }
+  };
+
+  return (
+    <RenderComponent
+      seconds={timeLeft}
+      paused={paused}
+      onTogglePause={togglePause}
+    />
+  );
+};
+
+//6
+const TimerContainer4 = ({ seconds, refresh, render }) => {
+  const [timeLeft, setTimeLeft] = useState(seconds);
+  const RenderComponent = render;
+
+  useEffect(() => {
+    const startTime = Date.now();
     const intervalId = setInterval(() => {
-      const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      const newTimeLeft = Math.max(seconds - elapsedTime, 0);
-      setTimeLeft(newTimeLeft);
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      const newTimeLeft = seconds - elapsedTime;
+      setTimeLeft(newTimeLeft > 0 ? newTimeLeft : 0);
     }, refresh);
 
-    return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId); 
   }, [seconds, refresh]);
 
-  const hours = Math.floor(timeLeft / 3600);
-  const minutes = Math.floor((timeLeft % 3600) / 60);
-  const secs = timeLeft % 60;
+  return <RenderComponent seconds={timeLeft} />;
+};
 
-  return <RenderComponent hours={hours} minutes={minutes} seconds={secs} />;
+const TimerDisplay = ({ seconds }) => {
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return <div>{formatTime(seconds)}</div>;
+};
+
+const TimerControl4 = () => {
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [start, setStart] = useState(false);
+
+  const handleStart = () => {
+    setStart(true);
+  };
+
+  const handleChange = (setter) => (e) => {
+    const value = Math.max(0, parseInt(e.target.value, 10) || 0);
+    setter(value);
+  };
+
+  const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+  return (
+    <div>
+      {!start ? (
+        <div>
+          <div>
+            <label>
+              Години:
+              <input type="number" value={hours} onChange={handleChange(setHours)} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Хвилини:
+              <input type="number" value={minutes} onChange={handleChange(setMinutes)} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Секунди:
+              <input type="number" value={seconds} onChange={handleChange(setSeconds)} />
+            </label>
+          </div>
+          <button onClick={handleStart}>Start</button>
+        </div>
+      ) : (
+        <TimerContainer seconds={totalSeconds} refresh={1000} render={TimerDisplay} />
+      )}
+    </div>
+  );
 };
 
 
-
-
+//7
 const PhoneNumbersEditor = () => {
   const [phoneNumbers, setPhoneNumbers] = useState(['']); 
 
@@ -225,20 +345,22 @@ const PhoneNumbersEditor = () => {
 
 
 const App = () => {
-  const [ms, setMs] = useState(1000)
+  const [ms, setMs] = useState(1000);
+  const SecondsTimer = ({ seconds }) => <h2>{seconds}</h2>;
     return (
         <div >
           <h2>Timer</h2>
           <Timer ms={ms}></Timer>
           <h2>TimerControl</h2>
-          <TimerControl/>
+          <TimerControl4/>
           <h2>TimerContainer</h2>
           <TimerContainer seconds={1800} refresh={100} render={SecondsTimer}/>
           <h2>LCD</h2>
-          {/* <TimerContainer2 seconds={1800} refresh={1000} render={Timer} /> */}
+          <TimerContainer2 seconds={1800} refresh={1000} render={Timer2} />
           <h2>Watch</h2>
-          <TimerContainer2 seconds={1800} refresh={1000} render={ClockTimer} />
+          <TimerContainer3 seconds={1800} refresh={1000} render={ClockTimer} />
           <h2>TimerControl + TimerContainer</h2>
+          <TimerControl/>
           <h2>Phonebook</h2>
           <PhoneNumbersEditor/>
         </div>
